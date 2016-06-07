@@ -127,7 +127,7 @@ class Tree extends BinaryTree{
 		}
 		boolean isLeftTrue = isAllLeafSameLevel(root.left, height, level+1);
 		boolean isRightTrue = isAllLeafSameLevel(root.right, height, level+1);
-		//wthat will root return after it evaluated about the left and right child
+		//what will root return after it evaluated about the left and right child
 		//Similar to post order traversal that we have values returned from left and right portion, now draw
 		//conclusion for the current root.
 		return isLeftTrue && isRightTrue;
@@ -281,6 +281,106 @@ class Tree extends BinaryTree{
 		isCousinNodes(root.left, data1, data2, level + 1, root, root);
 		isCousinNodes(root.right, data1, data2, level + 1, root, root);
 	}
+	/*
+	 * 
+		Find the closest leaf in a Binary Tree
+		
+		Given a Binary Tree and a key ‘k’, find distance of the closest leaf from ‘k’.
+		
+		Examples:
+		
+		              A
+		            /    \    
+		           B       C
+		                 /   \  
+		                E     F   
+		               /       \
+		              G         H
+		             / \       /
+		            I   J     K
+		
+		Closest leaf to 'H' is 'K', so distance is 1 for 'H'
+		Closest leaf to 'C' is 'B', so distance is 2 for 'C'
+		Closest leaf to 'E' is either 'I' or 'J', so distance is 2 for 'E' 
+	 */
+	public int findClosestLeafDown(Node root, int level){
+		if(root == null) return Integer.MAX_VALUE;
+		if(root.left == null && root.right == null) return level;
+		int left = findClosestLeafDown(root.left, level + 1);
+		int right = findClosestLeafDown(root.right, level + 1);
+		return min(left, right);
+	}
+	List<Node> ancesstors = new ArrayList<Node>();
+	public boolean getClosestLeaf(Node root, int key, int level){
+		if(root == null) return false;
+		if(root.data == key){
+			ancesstors.add(root);
+			return true;
+		}
+		boolean isLeft = getClosestLeaf(root.left, key, level + 1);
+		boolean isRight = getClosestLeaf(root.right, key, level + 1);
+		
+		if(isLeft || isRight){
+			ancesstors.add(root);
+			return true;
+		}else return false;
+	}
+	public void printClosestLeafUtil(Node root, int data){
+		getClosestLeaf(root, data, 1);
+		int min_length = 0;
+		Node key = ancesstors.remove(0);
+		int keyDownLeaf = findClosestLeafDown(root, 0);
+		min_length = keyDownLeaf;
+		for(int i = 1; i <= ancesstors.size(); i++){
+			int down = findClosestLeafDown(ancesstors.get(i - 1), 0);
+			if(down + i < min_length) {
+				System.out.println("Through ANcesstor : "+ ancesstors.get(i - 1).data);
+				min_length = down + i;
+			}
+		}
+		System.out.println("Minimum path is : "+ min_length);
+	}
+	
+	/*
+	 * Removal of all the half nodes i.e nodes with one child 
+	 * 
+	 */
+	public Node removeHalfNodes(Node root){
+		if(root == null) return null;
+		if(root.left == null && root.right == null) return root;
+		Node left = removeHalfNodes(root.left);
+		Node right = removeHalfNodes(root.right);
+		if(left != null && right != null){
+			root.left = left;
+			root.right = right;
+			return root;
+		}
+		if(right == null){
+			root.left = left;
+			return left;
+		}
+		else{
+			root.right = right;
+			return right;
+		}
+	}
+	
+	public int vertexCoverProblem(Node root){
+		if(root == null) return 0;
+		if(root.left == null && root.right == null) return 0;
+		
+		//If root is part of Vertex Cover
+		int ifPart = 1 + vertexCoverProblem(root.left) + vertexCoverProblem(root.right);
+		
+		//If root is not part of Cover then its two childs will be
+		int ifNotPart = 0;
+		if(root.left != null)
+			ifNotPart += vertexCoverProblem(root.left.left) + vertexCoverProblem(root.left.right);
+		if(root.right != null)
+			ifNotPart += vertexCoverProblem(root.right.left) + vertexCoverProblem(root.right.right);
+		
+		return min(ifPart , ifNotPart+2);
+	}
 }
 public class BinaryTreeImplementation {
 
@@ -367,13 +467,33 @@ public class BinaryTreeImplementation {
 		System.out.println("\n______________________________Check For cousine node of Tree_________________________\n");
 		tree = new Tree();
 		tree.isCousinNodes(tree.root, 1, 6, 1, null, null);
-		System.out.println(Tree.parent1.data + " " + Tree.parent2.data);
+		//System.out.println(Tree.parent1.data + " " + Tree.parent2.data);
 		if(Tree.datalevel1 == Tree.datalevel2 && Tree.parent1 != Tree.parent2 ){
-			
 			System.out.println("Yes .. COusins !!");
 		}else{
 			System.out.println("No .. Not Cousins !!");
 		}
+		
+		System.out.println("\n______________________________Check For closest leaf Down_________________________\n");
+		tree = new Tree();
+		System.out.println(tree.root.data);
+		System.out.println(tree.findClosestLeafDown(tree.root, 1));
+		
+		System.out.println("\n______________________________Check For closest leaf _________________________\n");
+		tree = new Tree();
+		tree.printClosestLeafUtil(tree.root, 0);
+		
+		System.out.println("\n______________________________Check For removal of half nodes _________________________\n");
+		tree = new Tree();
+		tree.inorder(tree.root);
+		Node newRoot = tree.removeHalfNodes(tree.root);
+		System.out.println();
+		tree.inorder(newRoot);
+		
+		
+		System.out.println("\n______________________________Check For Vertex Cover problem DP_________________________\n");
+		tree = new Tree();
+		System.out.println("Vertex Cover Problem is : "+tree.vertexCoverProblem(tree.root));
 	}
 
 }

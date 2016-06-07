@@ -35,6 +35,7 @@ class BinaryTree{
 		root.right.right = new Node(9);
 		root.right.right.right = new Node(0);
 		root.right.right.right.left = new Node(4);
+		//root.right.right.right.left.left = new Node(7);
 		root.right.right.right.right = new Node(-1);
 		root.right.right.right.right.left = new Node(10);
 	}
@@ -684,6 +685,8 @@ public class TreeImplementation {
 		System.out.println("\n______________________________Check for tree Biundary Traversal_________________________\n");
 		tree = new BinaryTree();
 		tree.printBoundaryTraversal(tree.root);
+		
+		
 	}
 
 }
