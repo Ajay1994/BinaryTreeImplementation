@@ -12,16 +12,31 @@ class Node{
 class BinaryTree{
 	Node root;
 	BinaryTree(){
-		root = new Node(5);
+		/*root = new Node(5);
 		root.left = new Node(7);
 		root.right = new Node(9);
 		root.left.left = new Node(8);
 		root.left.right = new Node(12);
 		root.left.right.left = new Node(18);
 		root.left.right.left.right = new Node(20);
+		root.left.right.right = new Node(20);
 		root.right.left = new Node(11);
 		root.right.right = new Node(19);
 		root.right.left.right = new Node(15);
+		//root.left.right.left.right.left = new Node(99);*/
+		root = new Node(-15);
+		root.left = new Node(5);
+		root.right = new Node(6);
+		root.left.left = new Node(-8);
+		root.left.right = new Node(1);
+		root.left.left.left = new Node(2);
+		root.left.left.right = new Node(6);
+		root.right.left = new Node(3);
+		root.right.right = new Node(9);
+		root.right.right.right = new Node(0);
+		root.right.right.right.left = new Node(4);
+		root.right.right.right.right = new Node(-1);
+		root.right.right.right.right.left = new Node(10);
 	}
 	public void inorder(Node root){
 		if(root == null) return;
@@ -111,7 +126,7 @@ class BinaryTree{
 		makeMirror(root.right);
 	}
 	static int preIndex = 0;
-	private int search(int[] inorder, int data, int start, int end) {
+	public int search(int[] inorder, int data, int start, int end) {
 		System.out.println(start + "-> "+end);
 		for(int i = start; i <= end; i++ ){
 			if(inorder[i] == data) return i;
@@ -226,6 +241,306 @@ class BinaryTree{
 		boolean inRight = pathOfgivenSumExists(root.right, sum - root.data);
 		return (inLeft || inRight);
 	}
+	/*
+	 * To create Double tree of the given tree, create a new duplicate for each node, and insert the 
+	 * duplicate as the left child of the original node.
+	 * So the tree…
+		
+		    2
+		   / \
+		  1   3
+		
+		is changed to…
+		
+		       2
+		      / \
+		     2   3
+		    /   /
+		   1   3
+		  /
+		 1
+
+	 */
+	public Node makeDoubleTree(Node root){
+		if(root == null) return null;
+		
+		Node transformedTreeLeft = makeDoubleTree(root.left);
+		Node transformedTreeRight = makeDoubleTree(root.right);
+		root.left = new Node(root.data);
+		root.left.left = transformedTreeLeft;
+		root.right = transformedTreeRight;
+		return root;
+	}
+	/*
+	 * Given a binary tree, write a function to get the maximum width of the given tree. 
+	 * Width of a tree is maximum of widths of all levels.
+	 * Solution 1: The Queue based level order traversal will take O(n) time in worst case.
+	 * Solution 2: create a temporary array count[] of size equal to the height of tree. We initialize all 
+	 * values in count as 0. We traverse the tree using preorder traversal and fill the entries in count so
+	 * that the count array contains count of nodes at each level in Binary Tree. 
+	 */
+	static int[] levelWidth;
+	public int getWidth(Node root){
+		if(root == null) return 0;
+		if(root.left == null && root.right == null) return 1;
+		else{
+			levelWidth = new int[maxDepth(root)];
+			for(int i = 0; i < levelWidth.length; i++) levelWidth[i] = 0;
+			fillLevelWidth(0, root);
+			return getMax(levelWidth);
+		}
+	}
+	private int getMax(int[] array) {
+		// TODO Auto-generated method stub
+		if(array.length == 0) return Integer.MIN_VALUE;
+		int max = array[0];
+		for(int i =0; i< array.length; i++){
+			max = max(max, array[i]);
+		}
+		return max;
+	}
+	private void fillLevelWidth(int level, Node root) {
+		// TODO Auto-generated method stub
+		if(root == null) return;
+		if(root.left == null && root.right == null){
+			levelWidth[level] += 1;
+			return;
+		}
+		levelWidth[level] += 1;
+		fillLevelWidth(level+1, root.left);
+		fillLevelWidth(level+1, root.right);
+	}
+	/*
+	 * A tree can be folded if left and right subtrees of the tree are structure wise mirror image of each other. An empty tree is considered as foldable.
+
+		Consider the below trees:
+		(a) and (b) can be folded.
+		
+		(a)
+		       10
+		     /    \
+		    7      15
+		     \    /
+		      9  11
+		
+		(b)
+		        10
+		       /  \
+		      7    15
+		     /      \
+		    9       11
+		1) If tree is empty, then return true.
+		2) Convert the left subtree to its mirror image
+		    mirror(root->left); /* See this post 
+		3) Check if the structure of left subtree and right subtree is same
+		   and store the result.
+		    res = isStructSame(root->left, root->right); /*isStructSame()
+		        recursively compares structures of two subtrees and returns
+		        true if structures are same 
+		4) Revert the changes made in step (2) to get the original tree.
+		    mirror(root->left);
+		5) Return result res stored in step 2.
+
+	 */
+	
+	public boolean isFoldable(Node root){
+		if(root == null) return true;
+		if(root.left == null && root.right == null) return true;
+		Node node = getMirror(root.left);
+		return isStructralSimilar(node, root.right);
+	}
+	private boolean isStructralSimilar(Node node1, Node node2) {
+		// TODO Auto-generated method stub
+		if(node1 == null && node2 == null) return true;
+		if(node1 != null && node2 != null){
+			boolean isLeft = isStructralSimilar(node1.left, node2.left);
+			boolean isRight = isStructralSimilar(node1.right, node2.right);
+			if(isLeft && isRight) return true;
+		}
+		return false;
+	}
+	private Node getMirror(Node node) {
+		// TODO Auto-generated method stub
+		if(node == null) return null;
+		Node temp = node.left;
+		node.left = node.right;
+		node.right = temp;
+		makeMirror(node.left);
+		makeMirror(node.right);
+		return node;
+	}
+	public int getNodeLevel(Node root, int level, int data){
+		if(root == null) return 0;
+		if(root.data == data) return level;
+		int inLeftLevel = getNodeLevel(root.left, level + 1, data);
+		if(inLeftLevel != 0) return inLeftLevel;
+		int inRightLevel = getNodeLevel(root.right, level+1, data);
+		return inRightLevel;
+	}
+	public boolean printAncesstorNode(Node root, int data){
+		if(root == null) return false;
+		if(root.data == data){
+			System.out.print(root.data +" ->");
+			return true;
+		}
+		boolean left = printAncesstorNode(root.left, data);
+		boolean right = printAncesstorNode(root.right, data);
+		if(left || right){
+			System.out.print(root.data +" ->");
+			return true;
+		}
+		return false;
+	}
+	/*
+	 * Check For SUM Tree : A SumTree is a Binary Tree where the value of a node is equal to sum of the nodes 
+	 * present in its left subtree and right subtree. An empty tree is SumTree and sum of an empty tree can be 
+	 * considered as 0. A leaf node is also considered as SumTree.
+	 */
+	public int isSumTree(Node root){
+		if(root == null) return 0;
+		if(root.left == null && root.right == null) return root.data;
+		int leftSum = 0;
+		int rightSum = 0;
+		if(root.left != null) leftSum = isSumTree(root.left);
+		if(root.right != null) rightSum = isSumTree(root.right);
+		if(leftSum == Integer.MIN_VALUE || rightSum == Integer.MIN_VALUE) return Integer.MIN_VALUE;
+		if(root.data == leftSum + rightSum) return 2*root.data;
+		else return Integer.MIN_VALUE;
+	}
+	/*
+	 * Given a Binary Tree where each node has positive and negative values. Convert this to a tree where each node 
+	 * contains the sum of the left and right sub trees in the original tree. The values of leaf nodes are changed to 0.
+
+		For example, the following tree
+		
+		                  10
+		               /      \
+			     -2        6
+		           /   \      /  \ 
+			 8     -4    7    5
+		
+		should be changed to
+		
+		                 20(4-2+12+6)
+		               /      \
+			   4(8-4)      12(7+5)
+		           /   \      /  \ 
+			 0      0    0    0
+
+	 */
+	public int makeSumTree(Node root){
+		if(root == null) return 0;
+		//Here we have to process first left and right and after that the root.
+		int leftSum = makeSumTree(root.left);
+		int rightSum = makeSumTree(root.right);
+		int rootOldSum = root.data;
+		root.data = leftSum + rightSum;
+		return rootOldSum + root.data;
+	}
+	/*
+	 * Vertical Sum in a given Binary Tree
+	 * Given a Binary Tree, find vertical sum of the nodes that are in same vertical line. Print all sums through different vertical lines.
+
+		Examples:
+		
+		      1
+		    /   \
+		  2      3
+		 / \    / \
+		4   5  6   7
+		
+		The tree has 5 vertical lines
+		
+		Vertical-Line-1 has only one node 4 => vertical sum is 4
+		Vertical-Line-2: has only one node 2=> vertical sum is 2
+		Vertical-Line-3: has three nodes: 1,5,6 => vertical sum is 1+5+6 = 12
+		Vertical-Line-4: has only one node 3 => vertical sum is 3
+		Vertical-Line-5: has only one node 7 => vertical sum is 7
+		
+		So expected output is 4, 2, 12, 3 and 7.
+		Here we can do with the pre order traversal. 
+	 */
+	static HashMap<Integer, Integer> map = new HashMap<Integer, Integer>();
+	public void saveVerticleSum(Node root, int level){
+		if(root == null) return;
+		if(map.containsKey(level)){
+			map.put(level, map.get(level) + root.data) ;
+		}else{
+			map.put(level, root.data);
+		}
+		saveVerticleSum(root.left, level + 1);
+		saveVerticleSum(root.right, level - 1);
+	}
+	public void printVerticle(Node root){
+		saveVerticleSum(root, 0);
+		Set<Integer> set = map.keySet();
+		for (Integer key : set) {
+			System.out.println("Level : "+ key + " && Sum :" + map.get(key));
+		}
+	}
+	static int maxSum = 0;
+	public void maxSumTillLeaf(Node root, int sum){
+		if(root == null) return;
+		if(root.left == null && root.right == null){
+			maxSum = max(sum + root.data ,maxSum);
+			return;
+		}
+		maxSumTillLeaf(root.left, sum + root.data);
+		maxSumTillLeaf(root.right, sum + root.data);
+	}
+	/*
+	 * Boundary Traversal of binary tree
+	 * 
+	 */
+	public void printBoundaryTraversal(Node root){
+		if(root == null) return;
+		System.out.println(root.data + " -> ");
+		printLeftBoundary(root.left);
+		printleafNodes(root.left);
+		printleafNodes(root.right);
+		printRightBoundary(root.right);
+	}
+	private  void printleafNodes(Node root) {
+		// TODO Auto-generated method stub
+		if(root == null) return;
+		if(root.left == null && root.right == null){
+			System.out.println(root.data + " -> ");
+			return;
+		}
+		printleafNodes(root.left);
+		printleafNodes(root.right);
+	}
+	private  void printRightBoundary(Node root) {
+		// TODO Auto-generated method stub
+		//here we have to go in top down fashion, so call recursion, then print
+		if(root == null) return;
+		if(root.right != null){
+			printRightBoundary(root.right);
+			System.out.println(root.data + " -> ");
+		}
+		else if(root.left != null){
+			printRightBoundary(root.left);
+			System.out.println(root.data + " -> ");
+		}else{
+			//Leaf condition so avoid them printing.
+		}
+		return;
+	}
+	private static void printLeftBoundary(Node root) {
+		// TODO Auto-generated method stub
+		if(root == null) return;
+		if(root.left != null){
+			System.out.println(root.data + " -> ");
+			printLeftBoundary(root.left);
+		}
+		else if(root.right != null){
+			System.out.println(root.data + " -> ");
+			printLeftBoundary(root.right);
+		}else{
+			//Leaf condition so avoid them printing.
+		}
+		return;
+	}
 }
 public class TreeImplementation {
 	
@@ -310,6 +625,65 @@ public class TreeImplementation {
 		tree = new BinaryTree();
 		System.out.println("Is there path of given sum : "+tree.pathOfgivenSumExists(tree.root, 40));
 		System.out.println();
+		
+		System.out.println("\n______________________________Check For Making of Double tree _________________________\n");
+		tree = new BinaryTree();
+		tree.inorder(tree.root);
+		System.out.println();
+		Node newRoot = tree.makeDoubleTree(tree.root);
+		tree.inorder(newRoot);
+		System.out.println();
+		
+		System.out.println("\n______________________________Check For width Of Tree _________________________\n");
+		tree = new BinaryTree();
+		System.out.println("Width of Tree is  : "+tree.getWidth(tree.root));
+		System.out.println();
+		
+		System.out.println("\n______________________________Check For Foldabilty Of Tree Of Tree _________________________\n");
+		tree = new BinaryTree();
+		System.out.println("Foldabilty of Tree is  : "+tree.isFoldable(tree.root));
+		System.out.println();
+		
+		System.out.println("\n______________________________Check For getting Node level of  Tree _________________________\n");
+		tree = new BinaryTree();
+		System.out.println("Level of node in tree is  : "+tree.getNodeLevel(tree.root, 1, 20));
+		System.out.println();
+		
+		System.out.println("\n______________________________Check For printing ancesstor of a node Tree _________________________\n");
+		tree = new BinaryTree();
+		System.out.println("Ancesstor of node is  : "+tree.printAncesstorNode(tree.root, 15));
+		System.out.println();
+		
+		
+		System.out.println("\n______________________________Check For Sum Tree _________________________\n");
+		tree = new BinaryTree();
+		if(tree.isSumTree(tree.root) == Integer.MIN_VALUE){
+			System.out.println("Not a Sum Tree");
+		}else{
+			System.out.println("Sum Tree");
+		}
+		System.out.println();
+		
+		System.out.println("\n______________________________Check For Making a Sum Tree _________________________\n");
+		tree = new BinaryTree();
+		tree.makeSumTree(tree.root);
+		tree.inorder(tree.root);
+		System.out.println();
+		
+		System.out.println("\n______________________________Check For printing verticle sum_________________________\n");
+		tree = new BinaryTree();
+		tree.printVerticle(tree.root);
+		System.out.println();
+		
+		System.out.println("\n______________________________Check for maximum sum till now_________________________\n");
+		tree = new BinaryTree();
+		tree.maxSumTillLeaf(tree.root,  0);
+		System.out.println("Max Sum : "+tree.maxSum);
+		System.out.println();
+		
+		System.out.println("\n______________________________Check for tree Biundary Traversal_________________________\n");
+		tree = new BinaryTree();
+		tree.printBoundaryTraversal(tree.root);
 	}
 
 }
